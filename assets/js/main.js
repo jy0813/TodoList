@@ -13,10 +13,14 @@ const todosList = get('.todos');
 const form = get('.todo_form');
 const todoInput = get('.todo_input');
 const paginationList = get('.pagination');
+
+
 const limit = 5;
 let currentPage = 1;
 const totalCount = 53;
 const pageCount = 5;
+
+
 const pagination = ()=> {
   let totalPage = Math.ceil(totalCount / limit);
   let pageGroup = Math.ceil(currentPage / pageCount);
@@ -67,8 +71,9 @@ const pagination = ()=> {
 }
 
 const createTodoElement = (item) => {
-  const { id, content, completed } = item;
+  const { id, content, completed, recommended } = item;
   const isChecked = completed ? 'checked' : '';
+  const isRecommended = recommended ? 'active' : '';
   const todoItem = document.createElement('div');
   todoItem.classList.add('item');
   todoItem.dataset.id = id;
@@ -83,6 +88,10 @@ const createTodoElement = (item) => {
             <input type="text" value="${content}" />
           </div>
           <div class="item_buttons content_buttons">
+            <button class="todo_recommend_button ${isRecommended}">
+            <i class="far fa-star"></i>
+            <i class="fas fa-star"></i>
+            </button>
             <button class="todo_edit_button">
               <i class="far fa-edit"></i>
             </button>
@@ -151,6 +160,22 @@ const toggleTodo = (e) => {
   }).then(getTodos).catch((error) => console.error(error));
 }
 
+const recommendTodo = (e) => {
+  if(e.target.className !== 'todo_recommend_button') return;
+  const item = e.target.closest('.item');
+  const id = item.dataset.id
+  const recommended = !e.target.active
+  fetch(`${API_URL}/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({recommended}),
+  }).then(getTodos).catch((error) => console.error(error));
+}
+
+
+
 const changeEditMode = (e) => {
   const item = e.target.closest('.item');
   const label = item.querySelector('label')
@@ -201,6 +226,7 @@ const removeTodo = (e) => {
   fetch(`${API_URL}/${id}`, {method: 'DELETE'}).then(getTodos).catch((error) => console.error(error));
 }
 
+
 const init = () => {
   window.addEventListener('DOMContentLoaded', () => {
     getTodos();
@@ -211,6 +237,7 @@ const init = () => {
   todosList.addEventListener('click', changeEditMode);
   todosList.addEventListener('click', editTodo);
   todosList.addEventListener('click', removeTodo);
+  todosList.addEventListener('click', recommendTodo);
 }
 
 init()
